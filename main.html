@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Key | Saw Hub</title>
+    <meta name="description" content="Generate API keys for Saw Hub services">
+    <link rel="icon" href="https://raw.githubusercontent.com/minhblus/sawhub/refs/heads/main/logo-nobg.png" type="image/x-icon">
+    <style>
+        :root {
+            --bg-gradient-start: #1f1c2c;
+            --bg-gradient-end: #928dab;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --card-border: rgba(255, 255, 255, 0.2);
+            --card-hover: rgba(255, 255, 255, 0.15);
+            --text-color: #fff;
+            --accent-color: #ffd700;
+            --error-color: #ff4b4b;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            padding: 25px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+
+        /* Verification Section */
+        #verification-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .turnstile-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        #selection-section {
+            display: none;
+        }
+
+        .dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .dropdown-toggle {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: 0.3s;
+            user-select: none;
+        }
+
+        .dropdown-toggle:hover {
+            background-color: var(--card-hover);
+        }
+
+        .dropdown-toggle::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-right: 2px solid var(--text-color);
+            border-bottom: 2px solid var(--text-color);
+            transform: rotate(45deg);
+            transition: transform 0.3s;
+            margin-left: 10px;
+        }
+
+        .dropdown.open .dropdown-toggle::after {
+            transform: rotate(-135deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            margin-top: 5px;
+            display: none;
+            z-index: 999;
+            animation: fadeInDown 0.3s ease;
+            overflow: hidden;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.3s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--card-hover);
+        }
+
+        .dropdown-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        #keys-section {
+            display: none;
+        }
+
+        .key-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .key-item {
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: fadeIn 0.5s;
+        }
+
+        .key-info {
+            flex: 1;
+        }
+
+        .key-service {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .key-service img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+        }
+
+        .key-expires {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .key-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .key-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .key-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px 25px;
+            color: var(--text-color);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            display: none;
+            animation: fadeInUp 0.4s ease-out;
+            z-index: 1000;
+            max-width: 320px;
+        }
+
+        .notification.error {
+            border-left: 4px solid var(--error-color);
+        }
+
+        .notification.success {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .notification.warning {
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .notification a {
+            color: var(--accent-color);
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .notification a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5d7df7, #9666dd);
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--text-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100%;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .notification {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .tabs {
+            display: flex;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:first-child {
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+        }
+
+        .tab:last-child {
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .tab.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.08);
+        }
+    </style>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+    <div class="container">
+        <img src="https://raw.githubusercontent.com/minhblus/sawhub/refs/heads/main/logo-nobg.png" alt="Saw Hub Logo" class="logo">
+        
+        <div class="card">
+            <h1>Saw Hub API Key</h1>
+            <p class="subtitle">Generate your API key for Saw Hub services</p>
+
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('generate')">Generate</div>
+                <div class="tab" onclick="switchTab('mykeys')">My Keys</div>
+            </div>
+
+            <div id="verification-section">
+                <p>Please complete the verification to continue</p>
+                <div class="turnstile-wrapper">
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAABcdYLQ9lBn20d1C" data-callback="onCaptchaSuccess"></div>
+                </div>
+            </div>
+         
+            <div id="selection-section">
+                <p>Choose a service to generate your key:</p>
+                <div class="dropdown" id="dropdown">
+                    <div class="dropdown-toggle" onclick="toggleDropdown()">
+                        <span id="selected-service">Select Shortenlink</span>
+                    </div>
+                    <div class="dropdown-menu" id="dropdown-menu">
+                        <div class="dropdown-item" onclick="selectService('yeumoney')">
+                            <img src="https://yeumoney.com/favicons/apple-touch-icon.png" class="dropdown-icon" alt="Yeumoney">
+                            Yeumoney
+                        </div>
+                        <div class="dropdown-item" onclick="selectService('linkvertise')">
+                            <img src="https://linkvertise.com/favicon.ico" class="dropdown-icon" alt="Linkvertise">
+                            Linkvertise
+                        </div>
+                        <div class="dropdown-item" onclick="selectService('lootlabs')">
+                            <img src="https://cdn.prod.website-files.com/668ba61f0b223db53115e694/670e14f0891c270ca4915b89_favicon.ico" class="dropdown-icon" alt="Lootlabs">
+                            Lootlabs
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-block" id="generate-btn" onclick="generateKey()">
+                    <span id="generate-btn-text">Generate Key</span>
+                    <span id="generate-btn-loading" class="loading" style="display: none;"></span>
+                </button>
+            </div>
+
+            <div id="keys-section">
+                <p>Your active API keys:</p>
+                <ul class="key-list" id="key-list">
+                </ul>
+                <button class="btn btn-block" onclick="refreshKeys()">Refresh Keys</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            &copy; 2025 Saw Hub | <a href="https://github.com/minhblus" target="_blank">GitHub</a>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        let turnstileToken = '';
+        let currentTab = 'generate';
+        let selectedService = '';
+        const API_BASE_URL = 'http://127.0.0.1:5000';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('click', function(e) {
+                const dropdown = document.getElementById('dropdown');
+                if (dropdown && !dropdown.contains(e.target)) {
+                    document.getElementById('dropdown-menu').style.display = 'none';
+                    dropdown.classList.remove('open');
+                }
+            });
+        });
+
+        function switchTab(tab) {
+            currentTab = tab;
+
+            document.querySelectorAll('.tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            if (tab === 'generate') {
+                document.getElementById('keys-section').style.display = 'none';
+                
+                if (turnstileToken) {
+                    document.getElementById('verification-section').style.display = 'none';
+                    document.getElementById('selection-section').style.display = 'block';
+                } else {
+                    document.getElementById('verification-section').style.display = 'block';
+                    document.getElementById('selection-section').style.display = 'none';
+                }
+            } else if (tab === 'mykeys') {
+                document.getElementById('verification-section').style.display = 'none';
+                document.getElementById('selection-section').style.display = 'none';
+                document.getElementById('keys-section').style.display = 'block';
+
+                fetchKeys();
+            }
+        }
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById('dropdown');
+            const menu = document.getElementById('dropdown-menu');
+            
+            if (menu.style.display === 'block') {
+                menu.style.display = 'none';
+                dropdown.classList.remove('open');
+            } else {
+                menu.style.display = 'block';
+                dropdown.classList.add('open');
+            }
+        }
+
+        function selectService(service) {
+            selectedService = service;
+
+            document.getElementById('selected-service').innerText = {
+                'yeumoney': 'Yeumoney',
+                'linkvertise': 'Linkvertise',
+                'lootlabs': 'Lootlabs'
+            }[service];
+
+            document.getElementById('dropdown-menu').style.display = 'none';
+            document.getElementById('dropdown').classList.remove('open');
+        }
+
+        function generateKey() {
+            if (!selectedService) {
+                showNotification('Please select a service first', 'warning');
+                return;
+            }
+            
+            const btnText = document.getElementById('generate-btn-text');
+            const btnLoading = document.getElementById('generate-btn-loading');
+            btnText.innerText = 'Generating...';
+            btnLoading.style.display = 'inline-block';
+            document.getElementById('generate-btn').disabled = true;
+            
+            fetch(`${API_BASE_URL}/create_key`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    service: selectedService,
+                    token: turnstileToken
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                btnText.innerText = 'Generate Key';
+                btnLoading.style.display = 'none';
+                document.getElementById('generate-btn').disabled = false;
+                
+                if (data.status === 'success') {
+                    showNotification(`Your key was generated successfully! <a href="${data.key}" target="_blank">Click here to open</a>`, 'success');
+                    if (document.getElementById('keys-section').style.display === 'block') {
+                        fetchKeys();
+                    }
+                } else if (data.status === 'limit_reached') {
+                    showNotification(`You've reached the maximum number of keys. <a href="${data.key}" target="_blank">Use an existing key</a>`, 'warning');
+                } else if (data.status === 'wait') {
+                    showNotification('Please wait a minute before generating another key', 'warning');
+                } else if (data.status === 'invalid_captcha') {
+                    showNotification('Verification failed! Please refresh the page and try again.', 'error');
+                    // Reset verification
+                    turnstileToken = '';
+                    document.getElementById('verification-section').style.display = 'block';
+                    document.getElementById('selection-section').style.display = 'none';
+                } else {
+                    showNotification(`Error: ${data.message || 'Unknown error'}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btnText.innerText = 'Generate Key';
+                btnLoading.style.display = 'none';
+                document.getElementById('generate-btn').disabled = false;
+                showNotification('Failed to connect to the server. Please try again later.', 'error');
+            });
+        }
+
+        function fetchKeys() {
+            const keyList = document.getElementById('key-list');
+            keyList.innerHTML = '<li class="key-item">Loading your keys...</li>';
+            
+            fetch(`${API_BASE_URL}/list_keys`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success' && data.keys && data.keys.length > 0) {
+                    keyList.innerHTML = '';
+                    
+                    data.keys.forEach(key => {
+                        const expiryDate = new Date(key.expires_at);
+                        const now = new Date();
+                        const hoursLeft = Math.round((expiryDate - now) / (1000 * 60 * 60));
+                        
+                        keyList.innerHTML += `
+                            <li class="key-item">
+                                <div class="key-info">
+                                    <div class="key-service">
+                                        <img src="${getServiceIcon(key.service)}" alt="${key.service}">
+                                        ${key.service.charAt(0).toUpperCase() + key.service.slice(1)}
+                                    </div>
+                                    <div class="key-expires">Expires in ${hoursLeft} hours</div>
+                                </div>
+                                <div class="key-actions">
+                                    <button class="key-btn" onclick="window.open('${key.key}', '_blank')">Open</button>
+                                    <button class="key-btn" onclick="copyToClipboard('${key.key}')">Copy</button>
+                                </div>
+                            </li>
+                        `;
+                    });
+                    
+                } else {
+                    keyList.innerHTML = '<li class="key-item">No active keys found. Generate a new key!</li>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                keyList.innerHTML = '<li class="key-item">Failed to load keys. Please try again.</li>';
+            });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    showNotification('Key copied to clipboard!', 'success');
+                })
+                .catch(err => {
+                    showNotification('Failed to copy: ' + err, 'error');
+                });
+        }
+
+        function refreshKeys() {
+            fetchKeys();
+            showNotification('Keys refreshed!', 'success');
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.className = 'notification ' + type;
+            notification.innerHTML = message;
+            notification.style.display = 'block';
+
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+
+        function getServiceIcon(service) {
+            const icons = {
+                'yeumoney': 'https://yeumoney.com/favicons/apple-touch-icon.png',
+                'linkvertise': 'https://linkvertise.com/favicon.ico',
+                'lootlabs': 'https://cdn.prod.website-files.com/668ba61f0b223db53115e694/670e14f0891c270ca4915b89_favicon.ico'
+            };
+            return icons[service] || '';
+        }
+
+        function onCaptchaSuccess(token) {
+            turnstileToken = token;
+            document.getElementById('verification-section').style.display = 'none';
+            document.getElementById('selection-section').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

@@ -433,6 +433,25 @@
         .tab:hover:not(.active) {
             background: rgba(255, 255, 255, 0.08);
         }
+        
+        /* HWID info styles */
+        .hwid-info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 2px solid var(--accent-color);
+            display: none;
+        }
+        
+        .hwid-value {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            word-break: break-all;
+        }
     </style>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
@@ -444,20 +463,26 @@
             <h1>Saw Hub API Key</h1>
             <p class="subtitle">Generate your API key for Saw Hub services</p>
 
+            <!-- HWID Information Section -->
+            <div class="hwid-info" id="hwid-info">
+                <p>Using Hardware ID:</p>
+                <div class="hwid-value" id="hwid-value"></div>
+            </div>
+
             <div class="tabs">
                 <div class="tab active" onclick="switchTab('generate')">Generate</div>
                 <div class="tab" onclick="switchTab('mykeys')">My Keys</div>
             </div>
 
             <div id="verification-section">
-                <p>Please complete the verification to continue</p>
+                <p>  Please complete the verification to continue</p>
                 <div class="turnstile-wrapper">
                     <div class="cf-turnstile" data-sitekey="0x4AAAAAABcdYLQ9lBn20d1C" data-callback="onCaptchaSuccess"></div>
                 </div>
             </div>
          
             <div id="selection-section">
-                <p>Choose a service to generate your key:</p>
+                <p>  Choose a service to generate your key:</p>
                 <div class="dropdown" id="dropdown">
                     <div class="dropdown-toggle" onclick="toggleDropdown()">
                         <span id="selected-service">Select Shortenlink</span>
@@ -502,9 +527,13 @@
         let turnstileToken = '';
         let currentTab = 'generate';
         let selectedService = '';
-        const API_BASE_URL = 'http://127.0.0.1:5000';
+        let hwid = '';
+        const API_BASE_URL = 'http://87.106.100.210:6348';
 
         document.addEventListener('DOMContentLoaded', function() {
+
+            extractHwidFromUrl();
+            
             document.addEventListener('click', function(e) {
                 const dropdown = document.getElementById('dropdown');
                 if (dropdown && !dropdown.contains(e.target)) {
@@ -513,6 +542,18 @@
                 }
             });
         });
+
+        function extractHwidFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hwidParam = urlParams.get('hwid');
+            
+            if (hwidParam) {
+                hwid = hwidParam;
+                document.getElementById('hwid-info').style.display = 'block';
+                document.getElementById('hwid-value').textContent = hwid;
+                console.log('HWID detected:', hwid);
+            }
+        }
 
         function switchTab(tab) {
             currentTab = tab;
@@ -578,16 +619,22 @@
             btnText.innerText = 'Generating...';
             btnLoading.style.display = 'inline-block';
             document.getElementById('generate-btn').disabled = true;
+
+            const payload = {
+                service: selectedService,
+                token: turnstileToken
+            };
+
+            if (hwid) {
+                payload.hwid = hwid;
+            }
             
             fetch(`${API_BASE_URL}/create_key`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    service: selectedService,
-                    token: turnstileToken
-                })
+                body: JSON.stringify(payload)
             })
             .then(response => response.json())
             .then(data => {
@@ -606,10 +653,12 @@
                     showNotification('Please wait a minute before generating another key', 'warning');
                 } else if (data.status === 'invalid_captcha') {
                     showNotification('Verification failed! Please refresh the page and try again.', 'error');
-                    // Reset verification
+
                     turnstileToken = '';
                     document.getElementById('verification-section').style.display = 'block';
                     document.getElementById('selection-section').style.display = 'none';
+                } else if (data.status === 'hwid_required') {
+                    showNotification('Hardware ID is required to generate a key.', 'error');
                 } else {
                     showNotification(`Error: ${data.message || 'Unknown error'}`, 'error');
                 }
@@ -626,8 +675,13 @@
         function fetchKeys() {
             const keyList = document.getElementById('key-list');
             keyList.innerHTML = '<li class="key-item">Loading your keys...</li>';
+
+            let keysUrl = `${API_BASE_URL}/list_keys`;
+            if (hwid) {
+                keysUrl += `?hwid=${encodeURIComponent(hwid)}`;
+            }
             
-            fetch(`${API_BASE_URL}/list_keys`)
+            fetch(keysUrl)
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success' && data.keys && data.keys.length > 0) {

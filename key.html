@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Dropdown</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1f1c2c, #928dab);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .dropdown {
+            position: relative;
+            width: 300px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .dropdown-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: 0.3s;
+            text-align: center;
+            font-family: 'Segoe UI', sans-serif;
+            color: #ffffff; /* Màu xanh cho text mặc định */
+            font-weight: 600;
+            width: auto;
+
+            min-width: 275px;
+            max-width: 100%;
+        }
+
+        .dropdown-toggle:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .dropdown-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .popup {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px 25px;
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            display: none;
+            animation: fadeInUp 0.4s ease-out;
+            z-index: 1000;
+            max-width: 320px;
+        }
+
+        .popup a {
+            color: #ffd700;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .copy-button {
+            background: #4caf50;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+
+        .copy-button:active {
+            background-color: #b3ff00;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="dropdown" id="dropdown">
+        <input class="dropdown-toggle" id="inputField" value="None" readonly>
+        <button class="copy-button" id="copyButton">Copy Key</button>
+    </div>
+
+    <div id="popup" class="popup">
+        <p>Copy thành công!</p>
+    </div>
+
+    <script>
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)', 'i');
+            const results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        const keyValue = getParameterByName('key');
+
+        if (keyValue) {
+            document.getElementById('inputField').value = keyValue;
+        }
+        document.getElementById("copyButton").addEventListener("click", function() {
+            var inputText = document.getElementById("inputField");
+            inputText.select();
+            inputText.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+
+            var popup = document.getElementById("popup");
+            popup.style.display = "block";
+            setTimeout(function() {
+                popup.style.display = "none";
+            }, 2000);
+        });
+    </script>
+
+</body>
+</html>

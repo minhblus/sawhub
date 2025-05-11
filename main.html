@@ -688,9 +688,7 @@
                     keyList.innerHTML = '';
                     
                     data.keys.forEach(key => {
-                        const expiryDate = new Date(key.expires_at);
-                        const now = new Date();
-                        const hoursLeft = Math.round((expiryDate - now) / (1000 * 60 * 60));
+                        const hoursLeft = key.hoursLeft;
                         
                         keyList.innerHTML += `
                             <li class="key-item">

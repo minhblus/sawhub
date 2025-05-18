@@ -266,13 +266,35 @@
 
         document.addEventListener('DOMContentLoaded', function() {
 
-            const keyValue = getParameterByName('key');
+            const keyValue = getParameterByName('hash');
             if (keyValue) {
-                document.getElementById('inputField').value = keyValue;
+                fetchKeyFromServer(keyValue)
             }
 
             document.getElementById("copyButton").addEventListener("click", copyApiKey);
         });
+
+        function fetchKeyFromServer(hash) {
+            fetch('http://67.220.85.157:6336/create_key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ hash: hash })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('inputField').value = data.key;
+                } else {
+                    document.getElementById('inputField').value = 'Error: ' + data.message;
+                }
+            })
+            .catch(err => {
+                document.getElementById('inputField').value = 'Error: Server unavailable';
+                console.error('Fetch error:', err);
+            });
+        }
 
         function copyApiKey() {
             const inputField = document.getElementById("inputField");

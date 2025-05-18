@@ -462,25 +462,6 @@
         <div class="card">
             <h1>Saw Hub API Key</h1>
             <p class="subtitle">Generate your API key for Saw Hub services</p>
-
-            <!-- HWID Information Section -->
-            <div class="hwid-info" id="hwid-info">
-                <p>Using Hardware ID:</p>
-                <div class="hwid-value" id="hwid-value"></div>
-            </div>
-
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab('generate')">Generate</div>
-                <div class="tab" onclick="switchTab('mykeys')">My Keys</div>
-            </div>
-
-            <div id="verification-section">
-                <p>  Please complete the verification to continue</p>
-                <div class="turnstile-wrapper">
-                    <div class="cf-turnstile" data-sitekey="0x4AAAAAABcdYLQ9lBn20d1C" data-callback="onCaptchaSuccess"></div>
-                </div>
-            </div>
-         
             <div id="selection-section">
                 <p>  Choose a service to generate your key:</p>
                 <div class="dropdown" id="dropdown">
@@ -488,17 +469,9 @@
                         <span id="selected-service">Select Shortenlink</span>
                     </div>
                     <div class="dropdown-menu" id="dropdown-menu">
-                        <div class="dropdown-item" onclick="selectService('yeumoney')">
-                            <img src="https://yeumoney.com/favicons/apple-touch-icon.png" class="dropdown-icon" alt="Yeumoney">
-                            Yeumoney
-                        </div>
                         <div class="dropdown-item" onclick="selectService('linkvertise')">
                             <img src="https://linkvertise.com/favicon.ico" class="dropdown-icon" alt="Linkvertise">
                             Linkvertise
-                        </div>
-                        <div class="dropdown-item" onclick="selectService('lootlabs')">
-                            <img src="https://cdn.prod.website-files.com/668ba61f0b223db53115e694/670e14f0891c270ca4915b89_favicon.ico" class="dropdown-icon" alt="Lootlabs">
-                            Lootlabs
                         </div>
                     </div>
                 </div>
@@ -531,7 +504,6 @@
         const API_BASE_URL = 'http://87.106.100.210:6348';
 
         document.addEventListener('DOMContentLoaded', function() {
-
             extractHwidFromUrl();
             
             document.addEventListener('click', function(e) {
@@ -557,28 +529,13 @@
 
         function switchTab(tab) {
             currentTab = tab;
-
             document.querySelectorAll('.tab').forEach(t => {
                 t.classList.remove('active');
             });
             event.target.classList.add('active');
             
             if (tab === 'generate') {
-                document.getElementById('keys-section').style.display = 'none';
-                
-                if (turnstileToken) {
-                    document.getElementById('verification-section').style.display = 'none';
-                    document.getElementById('selection-section').style.display = 'block';
-                } else {
-                    document.getElementById('verification-section').style.display = 'block';
-                    document.getElementById('selection-section').style.display = 'none';
-                }
-            } else if (tab === 'mykeys') {
-                document.getElementById('verification-section').style.display = 'none';
-                document.getElementById('selection-section').style.display = 'none';
-                document.getElementById('keys-section').style.display = 'block';
-
-                fetchKeys();
+                document.getElementById('selection-section').style.display = 'block';
             }
         }
 
@@ -599,9 +556,7 @@
             selectedService = service;
 
             document.getElementById('selected-service').innerText = {
-                'yeumoney': 'Yeumoney',
                 'linkvertise': 'Linkvertise',
-                'lootlabs': 'Lootlabs'
             }[service];
 
             document.getElementById('dropdown-menu').style.display = 'none';
@@ -620,66 +575,17 @@
             btnLoading.style.display = 'inline-block';
             document.getElementById('generate-btn').disabled = true;
 
-            const payload = {
-                service: selectedService,
-                token: turnstileToken
-            };
+            btnText.innerText = 'Generate Key';
+            btnLoading.style.display = 'none';
+            document.getElementById('generate-btn').disabled = false;
 
-            if (hwid) {
-                payload.hwid = hwid;
-            }
-            
-            fetch(`${API_BASE_URL}/create_key`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                btnText.innerText = 'Generate Key';
-                btnLoading.style.display = 'none';
-                document.getElementById('generate-btn').disabled = false;
-                
-                if (data.status === 'success') {
-                    showNotification(`Your key was generated successfully! <a href="${data.key}" target="_blank">Click here to open</a>`, 'success');
-                    if (document.getElementById('keys-section').style.display === 'block') {
-                        fetchKeys();
-                    }
-                } else if (data.status === 'limit_reached') {
-                    showNotification(`You've reached the maximum number of keys. <a href="${data.key}" target="_blank">Use an existing key</a>`, 'warning');
-                } else if (data.status === 'wait') {
-                    showNotification('Please wait a minute before generating another key', 'warning');
-                } else if (data.status === 'invalid_captcha') {
-                    showNotification('Verification failed! Please refresh the page and try again.', 'error');
-
-                    turnstileToken = '';
-                    document.getElementById('verification-section').style.display = 'block';
-                    document.getElementById('selection-section').style.display = 'none';
-                } else if (data.status === 'hwid_required') {
-                    showNotification('Hardware ID is required to generate a key.', 'error');
-                } else {
-                    showNotification(`Error: ${data.message || 'Unknown error'}`, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                btnText.innerText = 'Generate Key';
-                btnLoading.style.display = 'none';
-                document.getElementById('generate-btn').disabled = false;
-                showNotification('Failed to connect to the server. Please try again later.', 'error');
-            });
+            showNotification(`Your key was generated successfully! <a href="https://link-target.net/1351530/saw-hub-key-system" target="_blank">Click here to open</a>`, 'success');
         }
 
         function fetchKeys() {
             const keyList = document.getElementById('key-list');
             keyList.innerHTML = '<li class="key-item">Loading your keys...</li>';
 
-            let keysUrl = `${API_BASE_URL}/list_keys`;
-            if (hwid) {
-                keysUrl += `?hwid=${encodeURIComponent(hwid)}`;
-            }
             
             fetch(keysUrl)
             .then(response => response.json())
@@ -752,11 +658,7 @@
             return icons[service] || '';
         }
 
-        function onCaptchaSuccess(token) {
-            turnstileToken = token;
-            document.getElementById('verification-section').style.display = 'none';
-            document.getElementById('selection-section').style.display = 'block';
-        }
+        document.getElementById('selection-section').style.display = 'block';
     </script>
 </body>
 </html>
